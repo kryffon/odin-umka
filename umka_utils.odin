@@ -4,7 +4,7 @@ import "base:intrinsics"
 import "base:runtime"
 import "core:fmt"
 import "core:io"
-import "core:os/os2"
+import "core:os"
 import "core:terminal/ansi"
 
 PrintCompileWarning :: proc "c" (w: ^Error) {
@@ -46,11 +46,11 @@ PrintRuntimeError :: proc(U: Context) {
 
 @(private)
 print_line :: proc(e: ^Error) {
-	f, err := os2.open(string(e.fileName))
-	defer os2.close(f)
+	f, err := os.open(string(e.fileName))
+	defer os.close(f)
 	if err != nil do return
 
-	r := os2.to_reader(f)
+	r := os.to_reader(f)
 	cur_line_num: i32 = 1
 	cur_byte := -1
 	start, end: int = 0, -1
@@ -70,7 +70,7 @@ print_line :: proc(e: ^Error) {
 	if end > start {
 		buf := make([]u8, end - start)
 		defer delete(buf)
-		_, rerr := os2.read_at(f, buf, i64(start))
+		_, rerr := os.read_at(f, buf, i64(start))
 		if rerr == nil {
 			for &b in buf do if b == '\t' do b = ' '
 			fmt.eprintf("\n%s\n", buf)
@@ -133,10 +133,11 @@ GetStackSlotValue :: #force_inline proc(slot: ^StackSlot, $T: typeid) -> T {
 }
 
 SetFuncParam :: #force_inline proc(fn: ^FuncContext, index: int, value: $T) {
-	param := GetParam(fn.params, c.int(index))
+	param := GetParam(fn.params, i32(index))
 	if param != nil do SetStackSlotValue(param, value)
 }
 
+// NOTE: this must be called before `umka.Call` to set storage for structured result type
 SetFuncResult :: #force_inline proc(fn: ^FuncContext, result: $T) {
 	when intrinsics.type_is_pointer(T) {
 		GetResult(fn.params, fn.result).ptrVal = rawptr(result)

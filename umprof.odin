@@ -59,7 +59,7 @@ umprofReturnHook :: proc "c" (filename, funcName: cstring, line: i32) {
 }
 
 umprofPrintInfo :: proc(maxInfo: int = 2048) {
-	f, err := os.open("prof.txt", os.O_WRONLY | os.O_CREATE | os.O_TRUNC, 0o644)
+	f, err := os.open("prof.txt", os.O_WRONLY | os.O_CREATE | os.O_TRUNC)
 	assert(err == nil, "failed to open prof.txt")
 	defer os.close(f)
 
@@ -157,9 +157,9 @@ umprofParseEvent :: proc(par: ^UmprofEventParser, out: ^UmprofInfo, i: int) -> i
 
 umprofPrintTable :: proc(filename: string = "prof.txt", maxInfo: int = 1024) {
 	fmt.printfln("UMPROF: profile info saved in %q", filename)
-	f, err := os.open(filename, os.O_WRONLY | os.O_CREATE | os.O_TRUNC, 0o644)
+	f, err := os.open(filename, os.O_WRONLY | os.O_CREATE | os.O_TRUNC)
 	assert(err == nil, "failed to open file")
-	w := os.stream_from_handle(f)
+	w := os.to_stream(f)
 	defer os.close(f)
 
 	arr := make([]UmprofInfo, maxInfo)

@@ -5,7 +5,11 @@ import "core:c"
 UMKA_SHARED :: #config(UMKA_SHARED, false)
 
 when ODIN_OS == .Linux {
-	foreign import lib {"linux/libumka.so" when UMKA_SHARED else "linux/libumka_static_linux.a"}
+	when ODIN_DEBUG && #exists("linux/libumka_static_linux_debug.a") {
+		foreign import lib "linux/libumka_static_linux_debug.a"
+	} else {
+		foreign import lib {"linux/libumka.so" when UMKA_SHARED else "linux/libumka_static_linux.a"}
+	}
 } else when ODIN_OS == .Windows {
 	foreign import lib {"windows/libumka.dll" when UMKA_SHARED else "windows/libumka_static_windows.a"}
 } else {
